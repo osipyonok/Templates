@@ -95,7 +95,7 @@ private:
         if (node->m_priority < priority)
         {
             auto splitted_node = _Split(std::move(node), key);
-            auto new_node = node_ptr{ new Node(key, priority) };
+            auto new_node = std::make_unique<Node>(key, priority);
             new_node->SetLeft(std::move(splitted_node.first));
             new_node->SetRight(std::move(splitted_node.second));
             return std::move(new_node);
@@ -154,7 +154,7 @@ private:
 		if(m_comparator(node->m_key , key))
 		{
 			size_t size_of_left_subtree = (node->mp_left ? node->mp_left->m_size : 0);
-        	return _LowerBound(node->mp_right.get(), key) + size_of_left_subtree + 1;	
+			return _LowerBound(node->mp_right.get(), key) + size_of_left_subtree + 1;	
 		}
 		else
 		{
