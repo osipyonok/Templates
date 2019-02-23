@@ -67,7 +67,7 @@ struct SparseTable2D{
 		int y_sz = y2 - y1 + 1;
 		int k1 = (x_sz == 1) ? 0 : prec_lg2[build ? (x_sz - 1) : x_sz];
 		int k2 = (y_sz == 1) ? 0 : prec_lg2[build ? (y_sz - 1) : y_sz];
-		int NW = sparse[k1][k2][x1][y1]; 					   //North-West
+		int NW = sparse[k1][k2][x1][y1];
 		int NE = sparse[k1][k2][x1][y_sz - (1 << k2) + y1];			   
 		int SW = sparse[k1][k2][x_sz - (1 << k1) + x1][y1]; 		   
 		int SE = sparse[k1][k2][x_sz - (1 << k1) + x1][y_sz - (1 << k2) + y1]; 
@@ -80,7 +80,7 @@ struct SparseTable2D{
 		
 		prec_lg2.resize(max(R , C) + 1000);
 		for(int i = 2 ; i < prec_lg2.size() ; ++i){		
-		prec_lg2[i] = ((i & (i - 1)) == 0) ? prec_lg2[i-1] + 1 : prec_lg2[i-1];
+			prec_lg2[i] = ((i & (i - 1)) == 0) ? prec_lg2[i-1] + 1 : prec_lg2[i-1];
 		}
 		
 		int k1 = prec_lg2[R] + 1;
