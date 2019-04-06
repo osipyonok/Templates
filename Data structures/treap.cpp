@@ -2,7 +2,7 @@
 #include <random>
 #include <memory>
 #include <chrono>
-#include <set>
+#include <stdexcept>
 
 template<typename TKey, typename TComparator = std::less<TKey>, typename TGenerator = std::mt19937>
 class Treap
@@ -10,22 +10,22 @@ class Treap
 private:
 	struct Node;
  
-	using priority_type = typename TGenerator::result_type;
+	using priority_type	= typename TGenerator::result_type;
 	using node_const	= const Node* const;
-	using node_ptr	  = std::unique_ptr<Node>;
-	using node_pair	 = std::pair<node_ptr,node_ptr>;
+	using node_ptr		= std::unique_ptr<Node>;
+	using node_pair		= std::pair<node_ptr,node_ptr>;
  
 	struct Node
 	{
 		TKey			m_key;
-		size_t		  m_size;
-		priority_type   m_priority;
+		size_t			m_size;
+		priority_type	m_priority;
 		node_ptr		mp_left, mp_right;
 	 
  
 		Node(TKey key, priority_type priority)
-			: m_key  { key }
-			, m_size { 1 }
+			: m_key		{ key }
+			, m_size	{ 1 }
 			, m_priority { priority }
 		{}
  
@@ -117,21 +117,20 @@ private:
 	{
 		if (!node)
 			return nullptr;
- 
-		if (node->m_key == key)
-		{
-			return _Merge(std::move(node->mp_left), std::move(node->mp_right));
-		}
- 
-		if (m_comparator(node->m_key , key))
+
+		if(m_comparator(node->m_key , key))
 		{
 			node->SetRight(_Erase(std::move(node->mp_right), key));
 		}
-		else
+		else if(m_comparator(key , node->m_key))
 		{
 			node->SetLeft(_Erase(std::move(node->mp_left), key));
 		}
- 
+		else
+		{
+			return _Merge(std::move(node->mp_left), std::move(node->mp_right));
+		}
+
 		return std::move(node);
 	}
  
@@ -161,11 +160,16 @@ private:
 			return _LowerBound(node->mp_left.get(), key);	
 		}
 	}
+
+	bool _Equals(const TKey& val1, const TKey& val2) const
+	{
+		return !m_comparator(val1, val2) && !m_comparator(val2, val1);
+	}
  
 public:
 	explicit Treap(TComparator comparator = TComparator())
-		: m_generator  { std::chrono::steady_clock::now().time_since_epoch().count() }
-		, m_comparator { comparator }
+		: m_generator	{ std::chrono::steady_clock::now().time_since_epoch().count() }
+		, m_comparator	{ comparator }
 	{}
 	
 	template<typename Iterator>
@@ -190,13 +194,15 @@ public:
  
 	TKey KthElement(size_t k) const
 	{
+		if(k >= Size())
+			throw std::out_of_range("");
 		return _KthNode(mp_root.get(), k + 1)->m_key;
 	}
 	
 	size_t OrderOfKey(TKey value) const
 	{
 		auto count_lower_than_value = _LowerBound(mp_root.get(), value);
-		if(KthElement(count_lower_than_value) == value)
+		if(_Equals(KthElement(count_lower_than_value), value))
 			return count_lower_than_value;
 		else
 			return static_cast<size_t>(-1);
@@ -219,8 +225,8 @@ public:
  
 private:
 	node_ptr	mp_root;
-	TGenerator  m_generator;
-	TComparator m_comparator;
+	TGenerator	m_generator;
+	TComparator	m_comparator;
 };
 
 int main() {
